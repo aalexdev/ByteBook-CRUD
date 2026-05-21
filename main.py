@@ -132,3 +132,4 @@ async def encerrar_emprestimo(id_emprestimo: int):
     cursor.close()
     conn.close()
     return {"status": f"Empréstimo {id_emprestimo} finalizado"}
+
