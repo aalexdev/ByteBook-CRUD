@@ -6,7 +6,6 @@ from typing import Optional
 
 app = FastAPI(title="ByteBook API", version="1.0.0")
 
-# CORS — permite que o frontend (HTML/JS) acesse a API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
