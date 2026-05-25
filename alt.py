@@ -16,7 +16,6 @@ app.add_middleware(
 SERVER   = "localhost\\SQLEXPRESS"
 DATABASE = "bytebook"
 
-
 def get_conexao():
     try:
         connection_string = (
