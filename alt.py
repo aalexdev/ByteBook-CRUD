@@ -29,6 +29,7 @@ def get_conexao():
         raise HTTPException(status_code=500, detail=f"Erro de conexão com o banco: {e}")
 
 
+
 # ─────────────────────────────────────────────
 # MODELOS
 # ─────────────────────────────────────────────
