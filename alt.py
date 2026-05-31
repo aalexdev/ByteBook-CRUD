@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
-
 app = FastAPI(title="ByteBook API", version="1.0.0")
 
 app.add_middleware(
