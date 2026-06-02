@@ -5,9 +5,7 @@
 
 const API = "http://localhost:5000/api";
 
-/* ══════════════════════════════════════════════
-   NAVEGAÇÃO
-══════════════════════════════════════════════ */
+/* Navegação */
 document.querySelectorAll(".nav-item").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
@@ -22,9 +20,7 @@ document.querySelectorAll(".nav-item").forEach(btn => {
   });
 });
 
-/* ══════════════════════════════════════════════
-   TOAST
-══════════════════════════════════════════════ */
+/* Toast */
 let toastTimer;
 function showToast(msg, type = "info") {
   const t = document.getElementById("toast");
@@ -34,9 +30,7 @@ function showToast(msg, type = "info") {
   toastTimer = setTimeout(() => t.classList.add("hidden"), 3500);
 }
 
-/* ══════════════════════════════════════════════
-   HTTP HELPERS
-══════════════════════════════════════════════ */
+/* auxiliares HTTP  */
 async function api(path, options = {}) {
   try {
     const res = await fetch(`${API}${path}`, {
@@ -52,9 +46,7 @@ async function api(path, options = {}) {
   }
 }
 
-/* ══════════════════════════════════════════════
-   DASHBOARD
-══════════════════════════════════════════════ */
+/* Dashboard */
 async function carregarDashboard() {
   try {
     const stats = await api("/dashboard");
@@ -77,9 +69,7 @@ async function carregarDashboard() {
   } catch (_) {}
 }
 
-/* ══════════════════════════════════════════════
-   LIVROS
-══════════════════════════════════════════════ */
+/* Livros */
 async function carregarLivros(q = "") {
   try {
     const livros = await api(`/livros${q ? `?q=${encodeURIComponent(q)}` : ""}`);
@@ -116,7 +106,7 @@ function buscar(tipo) {
   if (tipo === "clientes") carregarClientes(q);
 }
 
-/* ── Form Livro ───────────────────────────────── */
+/* Form Livro */
 document.getElementById("form-livro").addEventListener("submit", async e => {
   e.preventDefault();
   const id = document.getElementById("livro-id").value;
@@ -153,9 +143,7 @@ function editarLivro(livro) {
   document.getElementById("modal-livro").classList.remove("hidden");
 }
 
-/* ══════════════════════════════════════════════
-   CLIENTES
-══════════════════════════════════════════════ */
+/* Clientes */
 async function carregarClientes(q = "") {
   try {
     const clientes = await api(`/clientes${q ? `?q=${encodeURIComponent(q)}` : ""}`);
@@ -184,7 +172,7 @@ async function carregarClientes(q = "") {
   } catch (_) {}
 }
 
-/* ── Form Cliente ─────────────────────────────── */
+/* Form Cliente */
 document.getElementById("form-cliente").addEventListener("submit", async e => {
   e.preventDefault();
   const id = document.getElementById("cliente-id").value;
@@ -217,9 +205,7 @@ function editarCliente(cliente) {
   document.getElementById("modal-cliente").classList.remove("hidden");
 }
 
-/* ══════════════════════════════════════════════
-   EMPRÉSTIMOS
-══════════════════════════════════════════════ */
+/* Empréstimos */
 let filtroAtual = "todos";
 
 async function carregarEmprestimos(status = filtroAtual) {
@@ -271,7 +257,7 @@ function filtrarEmprestimos(status, btn) {
   carregarEmprestimos(status);
 }
 
-/* ── Form Empréstimo ──────────────────────────── */
+/* Form Empréstimo */
 document.getElementById("form-emprestimo").addEventListener("submit", async e => {
   e.preventDefault();
   const payload = {
@@ -289,7 +275,7 @@ document.getElementById("form-emprestimo").addEventListener("submit", async e =>
   } catch (_) {}
 });
 
-/* ── Popular selects ao abrir modal empréstimo ─── */
+/* selects ao abrir modal empréstimo */
 async function popularSelectsEmprestimo() {
   try {
     const [livros, clientes] = await Promise.all([api("/livros"), api("/clientes")]);
@@ -311,9 +297,7 @@ async function popularSelectsEmprestimo() {
   } catch (_) {}
 }
 
-/* ══════════════════════════════════════════════
-   MODAIS
-══════════════════════════════════════════════ */
+/* Modais */
 function abrirModal(tipo) {
   if (tipo === "livro") {
     document.getElementById("modal-livro-title").textContent = "Novo Livro";
@@ -345,9 +329,7 @@ document.querySelectorAll(".modal-overlay").forEach(overlay => {
   });
 });
 
-/* ══════════════════════════════════════════════
-   DELETE COM CONFIRMAÇÃO
-══════════════════════════════════════════════ */
+/* Delete com confirmação */
 function confirmarDelete(tipo, id, nome) {
   const msgs = {
     livro:      `Excluir o livro "${nome}"? Esta ação não poderá ser desfeita.`,
@@ -372,9 +354,7 @@ function confirmarDelete(tipo, id, nome) {
   };
 }
 
-/* ══════════════════════════════════════════════
-   UTILS
-══════════════════════════════════════════════ */
+/* Utils */
 function esc(str) {
   if (!str) return "";
   return String(str)
@@ -391,7 +371,5 @@ function formatDate(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
-/* ══════════════════════════════════════════════
-   INICIALIZAÇÃO
-══════════════════════════════════════════════ */
+/* Inicialização */
 carregarDashboard();
