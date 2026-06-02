@@ -3,6 +3,8 @@ Frontend: HTML5, CSS3 e JavaScript (ES6+) para uma interface responsiva e dinâm
 
 Banco de Dados: SQL Server para armazenamento estruturado e integridade dos dados.
 
+Backend: Construído com Python e FastAPI, uma combinação que otimiza o ciclo de desenvolvimento através de uma estrutura moderna, tipagem automática com Pydantic e documentação interativa integrada, garantindo um código limpo, seguro e de fácil manutenção.
+
 # Demonstração Online
 👉 **[Acesse o ByteBook Aqui!](https://aalexdev.github.io/ByteBook-CRUD/)**
 
