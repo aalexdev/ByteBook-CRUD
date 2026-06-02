@@ -1,5 +1,4 @@
 /**
- * ByteBook — app.js
  * Lógica completa do frontend: navegação, CRUD, modais, toast
  */
 
