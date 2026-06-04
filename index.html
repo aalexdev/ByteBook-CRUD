@@ -1,299 +1,227 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ByteBook — Gestão de Biblioteca</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ByteBook - Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-  <!--  Sidebar  -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <span class="brand-icon">📚</span>
-      <span class="brand-name">ByteBook</span>
+  <header class="header-topo">
+    <div class="logo-container">
+      <span class="logo-icon">📚</span>
+      <span class="logo-texto">ByteBook</span>
     </div>
+  </header>
 
-    <nav class="sidebar-nav">
-      <button class="nav-item active" data-section="dashboard">
-        <span class="nav-icon">◈</span> Dashboard
-      </button>
-      <button class="nav-item" data-section="livros">
-        <span class="nav-icon">◉</span> Livros
-      </button>
-      <button class="nav-item" data-section="clientes">
-        <span class="nav-icon">◎</span> Clientes
-      </button>
-      <button class="nav-item" data-section="emprestimos">
-        <span class="nav-icon">◐</span> Empréstimos
-      </button>
-    </nav>
+  <div class="layout-container">
 
-    <div class="sidebar-footer">
-      <span class="version-tag">v1.0 · ByteBook</span>
-    </div>
-  </aside>
-
-  <!-- Conteúdo Principal -->
-  <main class="main-content">
-
-    <!-- Notificação -->
-    <div id="toast" class="toast hidden"></div>
-
-    <!-- Dashboard -->
-    <section id="section-dashboard" class="section active">
-      <div class="section-header">
-        <h1 class="section-title">Dashboard</h1>
-        <p class="section-sub">Visão geral do acervo</p>
+    <aside class="sidebar">
+      <div class="sidebar-secao">
+        <span class="sidebar-titulo">PRINCIPAL</span>
+        <button onclick="mudarAba('dashboard')" id="btn-dashboard" class="btn-menu active">
+          <span class="icon">📊</span> Painel Geral
+        </button>
       </div>
 
-      <div class="stats-grid">
-        <div class="stat-card" id="stat-livros">
-          <span class="stat-label">Total de Livros</span>
-          <span class="stat-value" id="val-livros">—</span>
+      <div class="sidebar-secao">
+        <span class="sidebar-titulo">CADASTROS</span>
+        <button onclick="mudarAba('autores')" id="btn-autores" class="btn-menu">
+          <span class="icon">✒️</span> Autores
+        </button>
+        <button onclick="mudarAba('clientes')" id="btn-clientes" class="btn-menu">
+          <span class="icon">👥</span> Clientes
+        </button>
+        <button onclick="mudarAba('livros')" id="btn-livros" class="btn-menu">
+          <span class="icon">📖</span> Livros
+        </button>
+      </div>
+
+      <div class="sidebar-secao">
+        <span class="sidebar-titulo">FLUXO</span>
+        <button onclick="mudarAba('emprestimos')" id="btn-emprestimos" class="btn-menu">
+          <span class="icon">🤝</span> Empréstimos
+        </button>
+      </div>
+    </aside>
+
+    <main class="conteudo-principal">
+
+      <section id="sec-dashboard" class="aba-conteudo">
+        <div class="dashboard-header">
+          <h2>Painel Geral - Indicadores</h2>
+          <p>Visão geral em tempo real baseada nos dados do sistema.</p>
         </div>
-        <div class="stat-card" id="stat-clientes">
-          <span class="stat-label">Clientes</span>
-          <span class="stat-value" id="val-clientes">—</span>
-        </div>
-        <div class="stat-card accent" id="stat-ativos">
-          <span class="stat-label">Empréstimos Ativos</span>
-          <span class="stat-value" id="val-ativos">—</span>
-        </div>
-        <div class="stat-card" id="stat-devolvidos">
-          <span class="stat-label">Devolvidos</span>
-          <span class="stat-value" id="val-devolvidos">—</span>
-        </div>
-      </div>
-
-      <div class="popular-section">
-        <h2 class="sub-heading">Livros Mais Emprestados</h2>
-        <ul id="lista-populares" class="popular-list"></ul>
-      </div>
-    </section>
-
-    <!-- Livros -->
-    <section id="section-livros" class="section">
-      <div class="section-header">
-        <div>
-          <h1 class="section-title">Livros</h1>
-          <p class="section-sub">Gerencie o acervo</p>
-        </div>
-        <button class="btn-primary" onclick="abrirModal('livro')">+ Novo Livro</button>
-      </div>
-
-      <div class="search-bar">
-        <input type="text" id="busca-livros" placeholder="Buscar por título, autor ou ISBN…" oninput="buscar('livros')" />
-      </div>
-
-      <div class="table-wrapper">
-        <table class="data-table" id="tabela-livros">
-          <thead>
-            <tr>
-              <th>#</th><th>Título</th><th>Autor</th><th>ISBN</th>
-              <th>Gênero</th><th>Ano</th><th>Qtd</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-livros"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Clientes -->
-    <section id="section-clientes" class="section">
-      <div class="section-header">
-        <div>
-          <h1 class="section-title">Clientes</h1>
-          <p class="section-sub">Cadastro de usuários da biblioteca</p>
-        </div>
-        <button class="btn-primary" onclick="abrirModal('cliente')">+ Novo Cliente</button>
-      </div>
-
-      <div class="search-bar">
-        <input type="text" id="busca-clientes" placeholder="Buscar por nome, e-mail ou CPF…" oninput="buscar('clientes')" />
-      </div>
-
-      <div class="table-wrapper">
-        <table class="data-table" id="tabela-clientes">
-          <thead>
-            <tr>
-              <th>#</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>CPF</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-clientes"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Empréstimos -->
-    <section id="section-emprestimos" class="section">
-      <div class="section-header">
-        <div>
-          <h1 class="section-title">Empréstimos</h1>
-          <p class="section-sub">Controle de retiradas e devoluções</p>
-        </div>
-        <button class="btn-primary" onclick="abrirModal('emprestimo')">+ Novo Empréstimo</button>
-      </div>
-
-      <div class="filter-tabs">
-        <button class="tab-btn active" onclick="filtrarEmprestimos('todos', this)">Todos</button>
-        <button class="tab-btn" onclick="filtrarEmprestimos('ativos', this)">Ativos</button>
-        <button class="tab-btn" onclick="filtrarEmprestimos('devolvidos', this)">Devolvidos</button>
-      </div>
-
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>#</th><th>Livro</th><th>Cliente</th>
-              <th>Retirada</th><th>Devolução</th><th>Status</th><th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-emprestimos"></tbody>
-        </table>
-      </div>
-    </section>
-
-  </main> <!-- /main-content -->
-
-  <!-- Modais -->
-
-  <!-- Modal Livro -->
-  <div id="modal-livro" class="modal-overlay hidden">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2 id="modal-livro-title">Novo Livro</h2>
-        <button class="modal-close" onclick="fecharModal('livro')">✕</button>
-      </div>
-      <form id="form-livro" class="modal-form">
-        <input type="hidden" id="livro-id" />
-        <div class="form-row">
-          <div class="form-group">
-            <label>Título *</label>
-            <input type="text" id="livro-titulo" required placeholder="Ex: Dom Casmurro" />
+      
+        <div class="metricas-grid">
+          <div class="card-metrica azul">
+            <div class="metrica-info">
+              <span class="metrica-label">Clientes Cadastrados</span>
+              <span id="dash-clientes" class="metrica-valor">...</span>
+            </div>
+            <span class="metrica-icon">👥</span>
           </div>
-          <div class="form-group">
-            <label>Autor *</label>
-            <input type="text" id="livro-autor" required placeholder="Ex: Machado de Assis" />
+      
+          <div class="card-metrica roxo">
+            <div class="metrica-info">
+              <span class="metrica-label">Livros Cadastrados</span>
+              <span id="dash-livros" class="metrica-valor">...</span>
+            </div>
+            <span class="metrica-icon">📖</span>
+          </div>
+      
+          <div class="card-metrica verde">
+            <div class="metrica-info">
+              <span class="metrica-label">Empréstimos Ativos</span>
+              <span id="dash-ativos" class="metrica-valor">...</span>
+            </div>
+            <span class="metrica-icon">🔄</span>
+          </div>
+      
+          <div class="card-metrica vermelho">
+            <div class="metrica-info">
+              <span class="metrica-label">Empréstimos Expirados</span>
+              <span id="dash-expirados" class="metrica-valor">...</span>
+            </div>
+            <span class="metrica-icon">⚠️</span>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>ISBN</label>
-            <input type="text" id="livro-isbn" placeholder="978-85-xxx-xxxx-x" />
-          </div>
-          <div class="form-group">
-            <label>Gênero</label>
-            <input type="text" id="livro-genero" placeholder="Ex: Romance" />
-          </div>
+      
+        <div class="card-informativo">
+          <h3>💡 Sincronização em Tempo Real</h3>
+          <p>Sempre que você clica em "Painel Geral" ou adiciona/remove registros nas outras abas, estes contadores são
+            recalculados automaticamente buscando as informações direto do back-end em memória.</p>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Ano de Publicação</label>
-            <input type="number" id="livro-ano" min="1000" max="2100" placeholder="2024" />
-          </div>
-          <div class="form-group">
-            <label>Quantidade</label>
-            <input type="number" id="livro-quantidade" min="1" value="1" />
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="fecharModal('livro')">Cancelar</button>
-          <button type="submit" class="btn-primary">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
+      </section>
 
-  <!-- Modal Cliente -->
-  <div id="modal-cliente" class="modal-overlay hidden">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2 id="modal-cliente-title">Novo Cliente</h2>
-        <button class="modal-close" onclick="fecharModal('cliente')">✕</button>
-      </div>
-      <form id="form-cliente" class="modal-form">
-        <input type="hidden" id="cliente-id" />
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nome *</label>
-            <input type="text" id="cliente-nome" required placeholder="Nome completo" />
-          </div>
-          <div class="form-group">
-            <label>E-mail *</label>
-            <input type="email" id="cliente-email" required placeholder="email@exemplo.com" />
-          </div>
+      <section id="sec-autores" class="aba-conteudo" style="display:none;">
+        <div class="modulo-header">
+          <h2>Gerenciar Autores</h2>
+          <p>Cadastre e controle os escritores do acervo.</p>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Telefone</label>
-            <input type="text" id="cliente-telefone" placeholder="(61) 9xxxx-xxxx" />
-          </div>
-          <div class="form-group">
-            <label>CPF</label>
-            <input type="text" id="cliente-cpf" placeholder="000.000.000-00" />
-          </div>
+        <div class="card-principal">
+          <form id="form-autor" class="formulario-grid" onsubmit="salvarAutor(event)">
+            <input type="number" id="aut-id" placeholder="ID do Autor" required>
+            <input type="text" id="aut-nome" placeholder="Nome Completo" required>
+            <input type="number" id="aut-idade" placeholder="Idade" required>
+            <input type="text" id="aut-nacionalidade" placeholder="Nacionalidade" required>
+            <button type="submit" id="btn-submit-autor" class="btn-acao-principal">Salvar Registro</button>
+          </form>
         </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="fecharModal('cliente')">Cancelar</button>
-          <button type="submit" class="btn-primary">Salvar</button>
+        <div class="card-tabela">
+          <table class="tabela-custom">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Nacionalidade</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-autores"></tbody>
+          </table>
         </div>
-      </form>
-    </div>
-  </div>
+      </section>
 
-  <!-- Modal Empréstimo -->
-  <div id="modal-emprestimo" class="modal-overlay hidden">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2>Novo Empréstimo</h2>
-        <button class="modal-close" onclick="fecharModal('emprestimo')">✕</button>
-      </div>
-      <form id="form-emprestimo" class="modal-form">
-        <div class="form-group">
-          <label>Livro *</label>
-          <select id="emp-livro" required></select>
+      <section id="sec-clientes" class="aba-conteudo" style="display:none;">
+        <div class="modulo-header">
+          <h2>Gerenciar Clientes</h2>
+          <p>Controle de leitores e membros associados à biblioteca.</p>
         </div>
-        <div class="form-group">
-          <label>Cliente *</label>
-          <select id="emp-cliente" required></select>
+        <div class="card-principal">
+          <form id="form-cliente" class="formulario-grid" onsubmit="salvarCliente(event)">
+            <input type="number" id="cli-id" placeholder="ID do Cliente" required>
+            <input type="text" id="cli-nome" placeholder="Nome Completo" required>
+            <input type="text" id="cli-cpf" placeholder="CPF" required>
+            <input type="text" id="cli-tel" placeholder="Telefone de Contato" required>
+            <input type="text" id="cli-end" placeholder="Endereço Residencial" required>
+            <button type="submit" id="btn-submit-cliente" class="btn-acao-principal">Salvar Registro</button>
+          </form>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Data de Retirada *</label>
-            <input type="date" id="emp-data-emprestimo" required />
-          </div>
-          <div class="form-group">
-            <label>Previsão de Devolução</label>
-            <input type="date" id="emp-data-devolucao" />
-          </div>
+        <div class="card-tabela">
+          <table class="tabela-custom">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-clientes"></tbody>
+          </table>
         </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="fecharModal('emprestimo')">Cancelar</button>
-          <button type="submit" class="btn-primary">Registrar</button>
-        </div>
-      </form>
-    </div>
-  </div>
+      </section>
 
-  <!-- Modal Confirmação Delete -->
-  <div id="modal-confirm" class="modal-overlay hidden">
-    <div class="modal-box modal-box--sm">
-      <div class="modal-header">
-        <h2>Confirmar Exclusão</h2>
-        <button class="modal-close" onclick="fecharModal('confirm')">✕</button>
-      </div>
-      <p class="confirm-msg" id="confirm-msg">Tem certeza que deseja excluir este item?</p>
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="fecharModal('confirm')">Cancelar</button>
-        <button class="btn-danger" id="btn-confirm-delete">Excluir</button>
-      </div>
-    </div>
+      <section id="sec-livros" class="aba-conteudo" style="display:none;">
+        <div class="modulo-header">
+          <h2>Gerenciar Livros</h2>
+          <p>Gerenciamento de títulos, volumes e vínculos de autoria.</p>
+        </div>
+        <div class="card-principal">
+          <form id="form-livro" class="formulario-grid" onsubmit="salvarLivro(event)">
+            <input type="number" id="liv-id" placeholder="ID do Livro" required>
+            <input type="number" id="liv-autor-id" placeholder="ID do Autor Vinculado" required>
+            <input type="text" id="liv-titulo" placeholder="Título da Obra" required>
+            <input type="text" id="liv-lancamento" placeholder="Ano de Lançamento" required>
+            <button type="submit" id="btn-submit-livro" class="btn-acao-principal">Salvar Registro</button>
+          </form>
+        </div>
+        <div class="card-tabela">
+          <table class="tabela-custom">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>ID Autor</th>
+                <th>Título</th>
+                <th>Lançamento</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-livros"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="sec-emprestimos" class="aba-conteudo" style="display:none;">
+        <div class="modulo-header">
+          <h2>Gerenciar Empréstimos</h2>
+          <p>Registro de retiradas e controle de prazos de devolução.</p>
+        </div>
+        <div class="card-principal">
+          <form id="form-emprestimo" class="formulario-grid" onsubmit="salvarEmprestimo(event)">
+            <input type="number" id="emp-id" placeholder="ID do Empréstimo" required>
+            <input type="number" id="emp-cli-id" placeholder="ID do Cliente" required>
+            <input type="number" id="emp-liv-id" placeholder="ID do Livro" required>
+            <input type="text" id="emp-data" placeholder="Data da Retirada (AAAA-MM-DD)" required>
+            <button type="submit" id="btn-submit-emprestimo" class="btn-acao-principal">Confirmar Operação</button>
+          </form>
+        </div>
+        <div class="card-tabela">
+          <table class="tabela-custom">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>ID Cliente</th>
+                <th>ID Livro</th>
+                <th>Data</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-emprestimos"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
   </div>
 
   <script src="app.js"></script>
 </body>
+
 </html>
