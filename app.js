@@ -1,374 +1,338 @@
-/**
- * Lógica completa do frontend: navegação, CRUD, modais, toast
- */
+const URL_API = "http://127.0.0.1:8000";
 
-const API = "http://localhost:5000/api";
+// Estados de Edição para controlar se estamos inserindo ou atualizando
+let modosEdicao = { autores: false, clientes: false, livros: false, emprestimos: false };
 
-/* Navegação */
-document.querySelectorAll(".nav-item").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-    btn.classList.add("active");
-    const sec = btn.dataset.section;
-    document.getElementById(`section-${sec}`).classList.add("active");
-    if (sec === "dashboard")   carregarDashboard();
-    if (sec === "livros")      carregarLivros();
-    if (sec === "clientes")    carregarClientes();
-    if (sec === "emprestimos") carregarEmprestimos("todos");
+// Inicializa o sistema carregando o dashboard por padrão
+window.onload = () => {
+  mudarAba('dashboard');
+};
+
+function mudarAba(idAba) {
+  document.querySelectorAll('.aba-conteudo').forEach(aba => aba.style.display = 'none');
+  document.getElementById(`sec-${idAba}`).style.display = 'flex';
+
+  document.querySelectorAll('.btn-menu').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`btn-${idAba}`).classList.add('active');
+
+  // Reseta qualquer estado de edição pendente ao mudar de aba
+  cancelarEdicaoGeral(idAba);
+
+  if (idAba === 'dashboard') carregarMetricasDashboard();
+  if (idAba === 'autores') listarAutores();
+  if (idAba === 'clientes') listarClientes();
+  if (idAba === 'livros') listarLivros();
+  if (idAba === 'emprestimos') listarEmprestimos();
+}
+
+function cancelarEdicaoGeral(aba) {
+  modosEdicao[aba] = false;
+  const form = document.getElementById(`form-${aba.replace(/s$/, '')}`);
+  const btn = document.getElementById(`btn-submit-${aba.replace(/s$/, '')}`);
+  const inputId = document.getElementById(`${aba.substring(0, 3)}-id`);
+
+  if (form) form.reset();
+  if (btn) btn.innerText = "Salvar Registro";
+  if (inputId) inputId.disabled = false;
+}
+
+// ==========================================
+// OPERAÇÕES: DASHBOARD (NOVO)
+// ==========================================
+async function carregarMetricasDashboard() {
+  try {
+    // 1. Busca total de clientes
+    const resClientes = await fetch(`${URL_API}/clientes`);
+    const clientes = await resClientes.json();
+    document.getElementById('dash-clientes').innerText = clientes.length;
+
+    // 2. Busca total de livros
+    const resLivros = await fetch(`${URL_API}/livros`);
+    const livros = await resLivros.json();
+    document.getElementById('dash-livros').innerText = livros.length;
+
+    // 3. Busca empréstimos e calcula Ativos vs Expirados
+    const resEmprestimos = await fetch(`${URL_API}/emprestimos`);
+    const emprestimos = await resEmprestimos.json();
+
+    document.getElementById('dash-ativos').innerText = emprestimos.length;
+
+    let contExpirados = 0;
+    const dataAtual = new Date();
+    const prazoDias = 14; // Regra de negócio: 14 dias para devolução
+
+    emprestimos.forEach(emp => {
+      // Converte a string 'AAAA-MM-DD' vinda do FastAPI para um objeto Date do JavaScript
+      const dataEmprestimo = new Date(emp.dt_emprestimo);
+
+      // Calcula a data limite de devolução
+      const dataLimite = new Date(dataEmprestimo);
+      dataLimite.setDate(dataLimite.getDate() + prazoDias);
+
+      // Se a data limite já passou em relação a hoje, está expirado
+      if (dataAtual > dataLimite) {
+        contExpirados++;
+      }
+    });
+
+    document.getElementById('dash-expirados').innerText = contExpirados;
+
+  } catch (error) {
+    console.error("Erro ao carregar dados do dashboard:", error);
+    document.getElementById('dash-clientes').innerText = "error";
+    document.getElementById('dash-livros').innerText = "error";
+    document.getElementById('dash-ativos').innerText = "error";
+    document.getElementById('dash-expirados').innerText = "error";
+  }
+}
+
+// ==========================================
+// OPERAÇÕES: AUTORES
+// ==========================================
+async function listarAutores() {
+  const res = await fetch(`${URL_API}/autores`);
+  const autores = await res.json();
+  const corpo = document.getElementById('tabela-autores');
+  corpo.innerHTML = '';
+  autores.forEach(a => {
+    corpo.innerHTML += `<tr>
+            <td>${a.id_autor}</td>
+            <td>${a.nome}</td>
+            <td>${a.idade}</td>
+            <td>${a.nacionalidade}</td>
+            <td>
+                <div class="acoes-flex">
+                    <button class="btn-editar" onclick="prepararEditarAutor(${a.id_autor}, '${a.nome.replace(/'/g, "\\'")}', ${a.idade}, '${a.nacionalidade.replace(/'/g, "\\'")}')">Editar</button>
+                    <button class="btn-deletar" onclick="deletarItem('autores', ${a.id_autor})">Eliminar</button>
+                </div>
+            </td>
+        </tr>`;
   });
-});
-
-/* Toast */
-let toastTimer;
-function showToast(msg, type = "info") {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = `toast ${type}`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.add("hidden"), 3500);
 }
 
-/* auxiliares HTTP  */
-async function api(path, options = {}) {
-  try {
-    const res = await fetch(`${API}${path}`, {
-      headers: { "Content-Type": "application/json" },
-      ...options,
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Erro desconhecido");
-    return data;
-  } catch (err) {
-    showToast(err.message, "error");
-    throw err;
-  }
+function prepararEditarAutor(id, nome, idade, nacionalidade) {
+  modosEdicao.autores = true;
+  document.getElementById('aut-id').value = id;
+  document.getElementById('aut-id').disabled = true;
+  document.getElementById('aut-nome').value = nome;
+  document.getElementById('aut-idade').value = idade;
+  document.getElementById('aut-nacionalidade').value = nacionalidade;
+  document.getElementById('btn-submit-autor').innerText = "Atualizar Registro 📝";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* Dashboard */
-async function carregarDashboard() {
-  try {
-    const stats = await api("/dashboard");
-    document.getElementById("val-livros").textContent      = stats.total_livros;
-    document.getElementById("val-clientes").textContent    = stats.total_clientes;
-    document.getElementById("val-ativos").textContent      = stats.emprestimos_ativos;
-    document.getElementById("val-devolvidos").textContent  = stats.emprestimos_devolvidos;
-
-    const ul = document.getElementById("lista-populares");
-    ul.innerHTML = "";
-    if (!stats.livros_populares?.length) {
-      ul.innerHTML = "<li style='color:var(--text-3);font-style:italic'>Nenhum empréstimo registrado ainda.</li>";
-    } else {
-      stats.livros_populares.forEach(l => {
-        const li = document.createElement("li");
-        li.innerHTML = `<span>${l.titulo}</span><span class="pop-count">${l.total}x</span>`;
-        ul.appendChild(li);
-      });
-    }
-  } catch (_) {}
-}
-
-/* Livros */
-async function carregarLivros(q = "") {
-  try {
-    const livros = await api(`/livros${q ? `?q=${encodeURIComponent(q)}` : ""}`);
-    const tbody  = document.getElementById("tbody-livros");
-    tbody.innerHTML = "";
-    if (!livros.length) {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Nenhum livro encontrado.</td></tr>`;
-      return;
-    }
-    livros.forEach(l => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${l.id}</td>
-        <td style="color:var(--text);font-weight:600">${esc(l.titulo)}</td>
-        <td>${esc(l.autor)}</td>
-        <td><code style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">${esc(l.isbn || "—")}</code></td>
-        <td>${esc(l.genero || "—")}</td>
-        <td>${l.ano || "—"}</td>
-        <td style="text-align:center">${l.quantidade}</td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn-icon" onclick='editarLivro(${JSON.stringify(l)})'>Editar</button>
-            <button class="btn-icon danger" onclick="confirmarDelete('livro',${l.id},'${esc(l.titulo)}')">Excluir</button>
-          </div>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-  } catch (_) {}
-}
-
-function buscar(tipo) {
-  const q = document.getElementById(`busca-${tipo}`).value;
-  if (tipo === "livros")   carregarLivros(q);
-  if (tipo === "clientes") carregarClientes(q);
-}
-
-/* Form Livro */
-document.getElementById("form-livro").addEventListener("submit", async e => {
-  e.preventDefault();
-  const id = document.getElementById("livro-id").value;
-  const payload = {
-    titulo:     document.getElementById("livro-titulo").value,
-    autor:      document.getElementById("livro-autor").value,
-    isbn:       document.getElementById("livro-isbn").value  || null,
-    genero:     document.getElementById("livro-genero").value || null,
-    ano:        parseInt(document.getElementById("livro-ano").value) || null,
-    quantidade: parseInt(document.getElementById("livro-quantidade").value) || 1,
+async function salvarAutor(event) {
+  event.preventDefault();
+  const id = parseInt(document.getElementById('aut-id').value);
+  const dados = {
+    id_autor: id,
+    nome: document.getElementById('aut-nome').value,
+    idade: parseInt(document.getElementById('aut-idade').value),
+    nacionalidade: document.getElementById('aut-nacionalidade').value
   };
-  try {
-    if (id) {
-      await api(`/livros/${id}`, { method: "PUT", body: JSON.stringify(payload) });
-      showToast("Livro atualizado com sucesso!", "success");
-    } else {
-      await api("/livros", { method: "POST", body: JSON.stringify(payload) });
-      showToast("Livro cadastrado com sucesso!", "success");
-    }
-    fecharModal("livro");
-    carregarLivros();
-  } catch (_) {}
-});
 
-function editarLivro(livro) {
-  document.getElementById("modal-livro-title").textContent = "Editar Livro";
-  document.getElementById("livro-id").value        = livro.id;
-  document.getElementById("livro-titulo").value    = livro.titulo;
-  document.getElementById("livro-autor").value     = livro.autor;
-  document.getElementById("livro-isbn").value      = livro.isbn || "";
-  document.getElementById("livro-genero").value    = livro.genero || "";
-  document.getElementById("livro-ano").value       = livro.ano || "";
-  document.getElementById("livro-quantidade").value = livro.quantidade;
-  document.getElementById("modal-livro").classList.remove("hidden");
-}
-
-/* Clientes */
-async function carregarClientes(q = "") {
-  try {
-    const clientes = await api(`/clientes${q ? `?q=${encodeURIComponent(q)}` : ""}`);
-    const tbody    = document.getElementById("tbody-clientes");
-    tbody.innerHTML = "";
-    if (!clientes.length) {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Nenhum cliente encontrado.</td></tr>`;
-      return;
-    }
-    clientes.forEach(c => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${c.id}</td>
-        <td style="color:var(--text);font-weight:600">${esc(c.nome)}</td>
-        <td>${esc(c.email)}</td>
-        <td>${esc(c.telefone || "—")}</td>
-        <td><code style="font-family:var(--font-mono);font-size:11px;color:var(--text-3)">${esc(c.cpf || "—")}</code></td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn-icon" onclick='editarCliente(${JSON.stringify(c)})'>Editar</button>
-            <button class="btn-icon danger" onclick="confirmarDelete('cliente',${c.id},'${esc(c.nome)}')">Excluir</button>
-          </div>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-  } catch (_) {}
-}
-
-/* Form Cliente */
-document.getElementById("form-cliente").addEventListener("submit", async e => {
-  e.preventDefault();
-  const id = document.getElementById("cliente-id").value;
-  const payload = {
-    nome:      document.getElementById("cliente-nome").value,
-    email:     document.getElementById("cliente-email").value,
-    telefone:  document.getElementById("cliente-telefone").value || null,
-    cpf:       document.getElementById("cliente-cpf").value || null,
-  };
-  try {
-    if (id) {
-      await api(`/clientes/${id}`, { method: "PUT", body: JSON.stringify(payload) });
-      showToast("Cliente atualizado!", "success");
-    } else {
-      await api("/clientes", { method: "POST", body: JSON.stringify(payload) });
-      showToast("Cliente cadastrado!", "success");
-    }
-    fecharModal("cliente");
-    carregarClientes();
-  } catch (_) {}
-});
-
-function editarCliente(cliente) {
-  document.getElementById("modal-cliente-title").textContent = "Editar Cliente";
-  document.getElementById("cliente-id").value       = cliente.id;
-  document.getElementById("cliente-nome").value     = cliente.nome;
-  document.getElementById("cliente-email").value    = cliente.email;
-  document.getElementById("cliente-telefone").value = cliente.telefone || "";
-  document.getElementById("cliente-cpf").value      = cliente.cpf || "";
-  document.getElementById("modal-cliente").classList.remove("hidden");
-}
-
-/* Empréstimos */
-let filtroAtual = "todos";
-
-async function carregarEmprestimos(status = filtroAtual) {
-  filtroAtual = status;
-  try {
-    const lista = await api(`/emprestimos?status=${status}`);
-    const tbody = document.getElementById("tbody-emprestimos");
-    tbody.innerHTML = "";
-    if (!lista.length) {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Nenhum empréstimo encontrado.</td></tr>`;
-      return;
-    }
-    lista.forEach(emp => {
-      const devolvido = !!emp.devolvido;
-      const badge = devolvido
-        ? `<span class="badge badge-done">Devolvido</span>`
-        : `<span class="badge badge-active">Ativo</span>`;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${emp.id}</td>
-        <td style="color:var(--text);font-weight:600">${esc(emp.livro_titulo)}</td>
-        <td>${esc(emp.cliente_nome)}</td>
-        <td><code style="font-family:var(--font-mono);font-size:11px">${formatDate(emp.data_emprestimo)}</code></td>
-        <td><code style="font-family:var(--font-mono);font-size:11px">${formatDate(emp.data_devolucao)}</code></td>
-        <td>${badge}</td>
-        <td>
-          <div class="actions-cell">
-            ${!devolvido ? `<button class="btn-icon success" onclick="devolverEmprestimo(${emp.id})">Devolver</button>` : ""}
-            <button class="btn-icon danger" onclick="confirmarDelete('emprestimo',${emp.id},'empréstimo #${emp.id}')">Excluir</button>
-          </div>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-  } catch (_) {}
-}
-
-async function devolverEmprestimo(id) {
-  try {
-    await api(`/emprestimos/${id}/devolver`, { method: "PATCH", body: JSON.stringify({}) });
-    showToast("Devolução registrada!", "success");
-    carregarEmprestimos();
-    carregarDashboard();
-  } catch (_) {}
-}
-
-function filtrarEmprestimos(status, btn) {
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  carregarEmprestimos(status);
-}
-
-/* Form Empréstimo */
-document.getElementById("form-emprestimo").addEventListener("submit", async e => {
-  e.preventDefault();
-  const payload = {
-    livro_id:         parseInt(document.getElementById("emp-livro").value),
-    cliente_id:       parseInt(document.getElementById("emp-cliente").value),
-    data_emprestimo:  document.getElementById("emp-data-emprestimo").value,
-    data_devolucao:   document.getElementById("emp-data-devolucao").value || null,
-  };
-  try {
-    await api("/emprestimos", { method: "POST", body: JSON.stringify(payload) });
-    showToast("Empréstimo registrado!", "success");
-    fecharModal("emprestimo");
-    carregarEmprestimos();
-    carregarDashboard();
-  } catch (_) {}
-});
-
-/* selects ao abrir modal empréstimo */
-async function popularSelectsEmprestimo() {
-  try {
-    const [livros, clientes] = await Promise.all([api("/livros"), api("/clientes")]);
-    const selLivro   = document.getElementById("emp-livro");
-    const selCliente = document.getElementById("emp-cliente");
-    selLivro.innerHTML   = `<option value="">Selecione um livro…</option>`;
-    selCliente.innerHTML = `<option value="">Selecione um cliente…</option>`;
-    livros.forEach(l => {
-      const opt = document.createElement("option");
-      opt.value = l.id; opt.textContent = `${l.titulo} — ${l.autor}`;
-      selLivro.appendChild(opt);
-    });
-    clientes.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.id; opt.textContent = `${c.nome} (${c.email})`;
-      selCliente.appendChild(opt);
-    });
-    document.getElementById("emp-data-emprestimo").value = new Date().toISOString().split("T")[0];
-  } catch (_) {}
-}
-
-/* Modais */
-function abrirModal(tipo) {
-  if (tipo === "livro") {
-    document.getElementById("modal-livro-title").textContent = "Novo Livro";
-    document.getElementById("form-livro").reset();
-    document.getElementById("livro-id").value = "";
+  let res;
+  if (modosEdicao.autores) {
+    res = await fetch(`${URL_API}/autores/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+  } else {
+    res = await fetch(`${URL_API}/autores`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
   }
-  if (tipo === "cliente") {
-    document.getElementById("modal-cliente-title").textContent = "Novo Cliente";
-    document.getElementById("form-cliente").reset();
-    document.getElementById("cliente-id").value = "";
-  }
-  if (tipo === "emprestimo") {
-    document.getElementById("form-emprestimo").reset();
-    popularSelectsEmprestimo();
-  }
-  document.getElementById(`modal-${tipo}`).classList.remove("hidden");
+  tratarResposta(res, 'form-autor', listarAutores, 'autores');
 }
 
-function fecharModal(tipo) {
-  document.getElementById(`modal-${tipo}`).classList.add("hidden");
-}
-
-/* Fechar ao clicar fora */
-document.querySelectorAll(".modal-overlay").forEach(overlay => {
-  overlay.addEventListener("click", e => {
-    if (e.target === overlay) {
-      overlay.classList.add("hidden");
-    }
+// ==========================================
+// OPERAÇÕES: CLIENTES
+// ==========================================
+async function listarClientes() {
+  const res = await fetch(`${URL_API}/clientes`);
+  const clientes = await res.json();
+  const corpo = document.getElementById('tabela-clientes');
+  corpo.innerHTML = '';
+  clientes.forEach(c => {
+    corpo.innerHTML += `<tr>
+            <td>${c.id_cliente}</td>
+            <td>${c.nome}</td>
+            <td>${c.cpf}</td>
+            <td>${c.telefone}</td>
+            <td>
+                <div class="acoes-flex">
+                    <button class="btn-editar" onclick="prepararEditarCliente(${c.id_cliente}, '${c.nome.replace(/'/g, "\\'")}', '${c.cpf}', '${c.telefone}', '${c.endereco.replace(/'/g, "\\'")}')">Editar</button>
+                    <button class="btn-deletar" onclick="deletarItem('clientes', ${c.id_cliente})">Eliminar</button>
+                </div>
+            </td>
+        </tr>`;
   });
-});
+}
 
-/* Delete com confirmação */
-function confirmarDelete(tipo, id, nome) {
-  const msgs = {
-    livro:      `Excluir o livro "${nome}"? Esta ação não poderá ser desfeita.`,
-    cliente:    `Excluir o cliente "${nome}"? Esta ação não poderá ser desfeita.`,
-    emprestimo: `Excluir o ${nome}? Esta ação não poderá ser desfeita.`,
+function prepararEditarCliente(id, nome, cpf, telephone, address) {
+  modosEdicao.clientes = true;
+  document.getElementById('cli-id').value = id;
+  document.getElementById('cli-id').disabled = true;
+  document.getElementById('cli-nome').value = nome;
+  document.getElementById('cli-cpf').value = cpf;
+  document.getElementById('cli-tel').value = telephone;
+  document.getElementById('cli-end').value = address;
+  document.getElementById('btn-submit-cliente').innerText = "Atualizar Registro 📝";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function salvarCliente(event) {
+  event.preventDefault();
+  const id = parseInt(document.getElementById('cli-id').value);
+  const dados = {
+    id_cliente: id,
+    nome: document.getElementById('cli-nome').value,
+    cpf: document.getElementById('cli-cpf').value,
+    telephone: document.getElementById('cli-tel').value,
+    address: document.getElementById('cli-end').value
   };
-  document.getElementById("confirm-msg").textContent = msgs[tipo];
-  document.getElementById("modal-confirm").classList.remove("hidden");
 
-  const btn = document.getElementById("btn-confirm-delete");
-  btn.onclick = async () => {
-    try {
-      const endpoints = { livro: "livros", cliente: "clientes", emprestimo: "emprestimos" };
-      await api(`/${endpoints[tipo]}/${id}`, { method: "DELETE" });
-      showToast("Item excluído com sucesso.", "info");
-      fecharModal("confirm");
-      if (tipo === "livro")       carregarLivros();
-      if (tipo === "cliente")     carregarClientes();
-      if (tipo === "emprestimo")  carregarEmprestimos();
-      carregarDashboard();
-    } catch (_) { fecharModal("confirm"); }
+  let res;
+  if (modosEdicao.clientes) {
+    res = await fetch(`${URL_API}/clientes/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+  } else {
+    res = await fetch(`${URL_API}/clientes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+  }
+  tratarResposta(res, 'form-cliente', listarClientes, 'clientes');
+}
+
+// ==========================================
+// OPERAÇÕES: LIVROS
+// ==========================================
+async function listarLivros() {
+  const res = await fetch(`${URL_API}/livros`);
+  const livros = await res.json();
+  const corpo = document.getElementById('tabela-livros');
+  corpo.innerHTML = '';
+  livros.forEach(l => {
+    corpo.innerHTML += `<tr>
+            <td>${l.id_livro}</td>
+            <td>${l.id_autor}</td>
+            <td>${l.titulo}</td>
+            <td>${l.lancamento}</td>
+            <td>
+                <div class="acoes-flex">
+                    <button class="btn-editar" onclick="prepararEditarLivro(${l.id_livro}, ${l.id_autor}, '${l.titulo.replace(/'/g, "\\'")}', '${l.lancamento}')">Editar</button>
+                    <button class="btn-deletar" onclick="deletarItem('livros', ${l.id_livro})">Eliminar</button>
+                </div>
+            </td>
+        </tr>`;
+  });
+}
+
+function prepararEditarLivro(id, idAutor, titulo, lancamento) {
+  modosEdicao.livros = true;
+  document.getElementById('liv-id').value = id;
+  document.getElementById('liv-id').disabled = true;
+  document.getElementById('liv-autor-id').value = idAutor;
+  document.getElementById('liv-titulo').value = titulo;
+  document.getElementById('liv-lancamento').value = lancamento;
+  document.getElementById('btn-submit-livro').innerText = "Atualizar Registro 📝";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function salvarLivro(event) {
+  event.preventDefault();
+  const id = parseInt(document.getElementById('liv-id').value);
+  const dados = {
+    id_livro: id,
+    id_autor: parseInt(document.getElementById('liv-autor-id').value),
+    titulo: document.getElementById('liv-titulo').value,
+    lancamento: document.getElementById('liv-lancamento').value
   };
+
+  let res;
+  if (modosEdicao.livros) {
+    res = await fetch(`${URL_API}/livros/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+  } else {
+    res = await fetch(`${URL_API}/livros`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+  }
+  tratarResposta(res, 'form-livro', listarLivros, 'livros');
 }
 
-/* Utils */
-function esc(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+// ==========================================
+// OPERAÇÕES: EMPRÉSTIMOS
+// ==========================================
+async function listarEmprestimos() {
+  const res = await fetch(`${URL_API}/emprestimos`);
+  const emprestimos = await res.json();
+  const corpo = document.getElementById('tabela-emprestimos');
+  corpo.innerHTML = '';
+  emprestimos.forEach(e => {
+    corpo.innerHTML += `<tr>
+            <td>${e.id_emprestimo}</td>
+            <td>${e.id_cliente}</td>
+            <td>${e.id_livro}</td>
+            <td>${e.dt_emprestimo}</td>
+            <td>
+                <div class="acoes-flex">
+                    <button class="btn-editar" onclick="prepararEditarEmprestimo(${e.id_emprestimo}, ${e.id_cliente}, ${e.id_livro}, '${e.dt_emprestimo}')">Editar</button>
+                    <button class="btn-deletar" onclick="deletarItem('emprestimos', ${e.id_emprestimo})">Eliminar</button>
+                </div>
+            </td>
+        </tr>`;
+  });
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return "—";
-  const [y, m, d] = dateStr.split("T")[0].split("-");
-  return `${d}/${m}/${y}`;
+function prepararEditarEmprestimo(id, idCliente, idLivro, data) {
+  modosEdicao.emprestimos = true;
+  document.getElementById('emp-id').value = id;
+  document.getElementById('emp-id').disabled = true;
+  document.getElementById('emp-cli-id').value = idCliente;
+  document.getElementById('emp-liv-id').value = idLivro;
+  document.getElementById('emp-data').value = data;
+  document.getElementById('btn-submit-emprestimo').innerText = "Atualizar Operação 📝";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* Inicialização */
-carregarDashboard();
+async function salvarEmprestimo(event) {
+  event.preventDefault();
+  const id = parseInt(document.getElementById('emp-id').value);
+  const dados = {
+    id_emprestimo: id,
+    id_cliente: parseInt(document.getElementById('emp-cli-id').value),
+    id_livro: parseInt(document.getElementById('emp-liv-id').value),
+    dt_emprestimo: document.getElementById('emp-data').value
+  };
+
+  let res;
+  if (modosEdicao.emprestimos) {
+    res = await fetch(`${URL_API}/emprestimos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+  } else {
+    res = await fetch(`${URL_API}/emprestimos`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+  }
+  tratarResposta(res, 'form-emprestimo', listarEmprestimos, 'emprestimos');
+}
+
+// ==========================================
+// COMPONENTES AUXILIARES GLOBAIS
+// ==========================================
+async function deletarItem(endpoint, id) {
+  const res = await fetch(`${URL_API}/${endpoint}/${id}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (res.ok) {
+    alert(data.message);
+    mudarAba(endpoint);
+  } else {
+    alert("Erro: " + data.detail);
+  }
+}
+
+async function tratarResposta(resposta, idForm, funcaoListar, aba) {
+  const data = await responseData(resposta);
+  if (resposta.ok) {
+    alert(data.message || "Operação realizada com sucesso!");
+    cancelarEdicaoGeral(aba);
+    funcaoListar();
+  } else {
+    alert("Erro: " + (data.detail || "Falha na comunicação com o servidor."));
+  }
+}
+
+async function responseData(res) {
+  try {
+    return await res.json();
+  } catch (e) {
+    return {};
+  }
+}
