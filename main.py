@@ -155,7 +155,7 @@ def listar_emprestimos(status: str = "todos"):
     elif status == "devolvidos": cur.execute(q + " WHERE e.devolvido=1 ORDER BY e.data_devolucao DESC")
     else:                       cur.execute(q + " ORDER BY e.id DESC")
     result = rows(cur); conn.close(); return result
- 
+  
 @app.post("/api/emprestimos", status_code=201)
 def criar_emprestimo(e: Emprestimo):
     conn = db(); cur = conn.cursor()
