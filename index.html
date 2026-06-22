@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ByteBook — Gestão de Biblioteca</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap"
+    rel="stylesheet" />
 </head>
-<body>  
-  
+
+<body>
+
   <!--  Sidebar  -->
   <aside class="sidebar">
     <div class="sidebar-brand">
@@ -33,9 +37,9 @@
     </nav>
 
     <div class="sidebar-footer">
-      <span class="version-tag">v1.0 · ByteBook</span>
+      <span class="version-tag">v1.3 · ByteBook</span>
     </div>
-  </aside> 
+  </aside>
 
   <!-- Conteúdo Principal -->
   <main class="main-content">
@@ -83,18 +87,25 @@
           <p class="section-sub">Gerencie o acervo</p>
         </div>
         <button class="btn-primary" onclick="abrirModal('livro')">+ Novo Livro</button>
-      </div> 
+      </div>
 
       <div class="search-bar">
-        <input type="text" id="busca-livros" placeholder="Buscar por título, autor ou ISBN…" oninput="buscar('livros')" />
+        <input type="text" id="busca-livros" placeholder="Buscar por título, autor ou ISBN…"
+          oninput="buscar('livros')" />
       </div>
 
       <div class="table-wrapper">
         <table class="data-table" id="tabela-livros">
           <thead>
             <tr>
-              <th>#</th><th>Título</th><th>Autor</th><th>ISBN</th>
-              <th>Gênero</th><th>Ano</th><th>Qtd</th><th>Ações</th>
+              <th>#</th>
+              <th>Título</th>
+              <th>Autor</th>
+              <th>ISBN</th>
+              <th>Gênero</th>
+              <th>Ano</th>
+              <th>Qtd</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody id="tbody-livros"></tbody>
@@ -113,14 +124,20 @@
       </div>
 
       <div class="search-bar">
-        <input type="text" id="busca-clientes" placeholder="Buscar por nome, e-mail ou CPF…" oninput="buscar('clientes')" />
+        <input type="text" id="busca-clientes" placeholder="Buscar por nome, e-mail ou CPF…"
+          oninput="buscar('clientes')" />
       </div>
 
       <div class="table-wrapper">
         <table class="data-table" id="tabela-clientes">
           <thead>
             <tr>
-              <th>#</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>CPF</th><th>Ações</th>
+              <th>#</th>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Telefone</th>
+              <th>CPF</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody id="tbody-clientes"></tbody>
@@ -148,8 +165,13 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>#</th><th>Livro</th><th>Cliente</th>
-              <th>Retirada</th><th>Devolução</th><th>Status</th><th>Ações</th>
+              <th>#</th>
+              <th>Livro</th>
+              <th>Cliente</th>
+              <th>Retirada</th>
+              <th>Devolução</th>
+              <th>Status</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody id="tbody-emprestimos"></tbody>
@@ -296,4 +318,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
