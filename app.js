@@ -1,10 +1,13 @@
 /**
+ * ByteBook — app.js
  * Lógica completa do frontend: navegação, CRUD, modais, toast
  */
 
-const API = "http://localhost:5000/api";
+const API = "http://localhost:8000/api";
 
-/* Navegação */
+/* ══════════════════════════════════════════════
+   NAVEGAÇÃO
+══════════════════════════════════════════════ */
 document.querySelectorAll(".nav-item").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
@@ -19,7 +22,9 @@ document.querySelectorAll(".nav-item").forEach(btn => {
   });
 });
 
-/* Toast */
+/* ══════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════ */
 let toastTimer;
 function showToast(msg, type = "info") {
   const t = document.getElementById("toast");
@@ -29,7 +34,9 @@ function showToast(msg, type = "info") {
   toastTimer = setTimeout(() => t.classList.add("hidden"), 3500);
 }
 
-/* auxiliares HTTP  */
+/* ══════════════════════════════════════════════
+   HTTP HELPERS
+══════════════════════════════════════════════ */
 async function api(path, options = {}) {
   try {
     const res = await fetch(`${API}${path}`, {
@@ -45,7 +52,9 @@ async function api(path, options = {}) {
   }
 }
 
-/* Dashboard */
+/* ══════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════ */
 async function carregarDashboard() {
   try {
     const stats = await api("/dashboard");
@@ -68,7 +77,9 @@ async function carregarDashboard() {
   } catch (_) {}
 }
 
-/* Livros */
+/* ══════════════════════════════════════════════
+   LIVROS
+══════════════════════════════════════════════ */
 async function carregarLivros(q = "") {
   try {
     const livros = await api(`/livros${q ? `?q=${encodeURIComponent(q)}` : ""}`);
@@ -105,7 +116,7 @@ function buscar(tipo) {
   if (tipo === "clientes") carregarClientes(q);
 }
 
-/* Form Livro */
+/* ── Form Livro ───────────────────────────────── */
 document.getElementById("form-livro").addEventListener("submit", async e => {
   e.preventDefault();
   const id = document.getElementById("livro-id").value;
@@ -142,7 +153,9 @@ function editarLivro(livro) {
   document.getElementById("modal-livro").classList.remove("hidden");
 }
 
-/* Clientes */
+/* ══════════════════════════════════════════════
+   CLIENTES
+══════════════════════════════════════════════ */
 async function carregarClientes(q = "") {
   try {
     const clientes = await api(`/clientes${q ? `?q=${encodeURIComponent(q)}` : ""}`);
@@ -171,7 +184,7 @@ async function carregarClientes(q = "") {
   } catch (_) {}
 }
 
-/* Form Cliente */
+/* ── Form Cliente ─────────────────────────────── */
 document.getElementById("form-cliente").addEventListener("submit", async e => {
   e.preventDefault();
   const id = document.getElementById("cliente-id").value;
@@ -204,7 +217,9 @@ function editarCliente(cliente) {
   document.getElementById("modal-cliente").classList.remove("hidden");
 }
 
-/* Empréstimos */
+/* ══════════════════════════════════════════════
+   EMPRÉSTIMOS
+══════════════════════════════════════════════ */
 let filtroAtual = "todos";
 
 async function carregarEmprestimos(status = filtroAtual) {
@@ -256,7 +271,7 @@ function filtrarEmprestimos(status, btn) {
   carregarEmprestimos(status);
 }
 
-/* Form Empréstimo */
+/* ── Form Empréstimo ──────────────────────────── */
 document.getElementById("form-emprestimo").addEventListener("submit", async e => {
   e.preventDefault();
   const payload = {
@@ -274,7 +289,7 @@ document.getElementById("form-emprestimo").addEventListener("submit", async e =>
   } catch (_) {}
 });
 
-/* selects ao abrir modal empréstimo */
+/* ── Popular selects ao abrir modal empréstimo ─── */
 async function popularSelectsEmprestimo() {
   try {
     const [livros, clientes] = await Promise.all([api("/livros"), api("/clientes")]);
@@ -296,7 +311,9 @@ async function popularSelectsEmprestimo() {
   } catch (_) {}
 }
 
-/* Modais */
+/* ══════════════════════════════════════════════
+   MODAIS
+══════════════════════════════════════════════ */
 function abrirModal(tipo) {
   if (tipo === "livro") {
     document.getElementById("modal-livro-title").textContent = "Novo Livro";
@@ -328,7 +345,9 @@ document.querySelectorAll(".modal-overlay").forEach(overlay => {
   });
 });
 
-/* Delete com confirmação */
+/* ══════════════════════════════════════════════
+   DELETE COM CONFIRMAÇÃO
+══════════════════════════════════════════════ */
 function confirmarDelete(tipo, id, nome) {
   const msgs = {
     livro:      `Excluir o livro "${nome}"? Esta ação não poderá ser desfeita.`,
@@ -353,7 +372,9 @@ function confirmarDelete(tipo, id, nome) {
   };
 }
 
-/* Utils */
+/* ══════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════ */
 function esc(str) {
   if (!str) return "";
   return String(str)
@@ -370,5 +391,7 @@ function formatDate(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
-/* Inicialização */
+/* ══════════════════════════════════════════════
+   INICIALIZAÇÃO
+══════════════════════════════════════════════ */
 carregarDashboard();
