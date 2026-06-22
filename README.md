@@ -38,3 +38,4 @@ Execução do Frontend:
 Bash
 git clone https://github.com/seu-usuario/bytebook.git
 Abra o arquivo index.html no seu navegador ou utilize a extensão Live Server no VS Code.
+  
