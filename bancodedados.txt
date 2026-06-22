@@ -1,0 +1,41 @@
+CREATE DATABASE ByteBook;
+USE ByteBook;
+
+-- 1. TABELA: Clientes
+CREATE TABLE clientes (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    telefone VARCHAR(15) NULL,
+    cpf VARCHAR(14) NOT NULL UNIQUE
+);
+
+-- 2. TABELA: Livros
+CREATE TABLE livros (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    titulo VARCHAR(100) NOT NULL,
+    autor VARCHAR(100) NOT NULL,
+    isbn VARCHAR(20) NULL,
+    genero VARCHAR(50) NULL,
+    ano INT NULL,
+    quantidade INT NOT NULL DEFAULT 1
+);
+
+-- 3. TABELA: Empréstimos (Integrado direto com Clientes e Livros para o Frontend)
+CREATE TABLE emprestimos (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    livro_id INT NOT NULL FOREIGN KEY REFERENCES livros(id) ON DELETE CASCADE,
+    cliente_id INT NOT NULL FOREIGN KEY REFERENCES clientes(id) ON DELETE CASCADE,
+    data_emprestimo DATE NOT NULL DEFAULT GETDATE(),
+    data_devolucao DATE NULL,
+    devolvido BIT NOT NULL DEFAULT 0 -- 0 = Ativo, 1 = Devolvido
+);
+
+-- Popular dados iniciais para o Dashboard não iniciar zerado
+INSERT INTO clientes (nome, email, telefone, cpf) VALUES 
+('Alexandre Lopes', 'alexandre@email.com', '(61) 99999-9999', '123.456.789-00'),
+('Tiago Henrique', 'tiago@email.com', '(61) 88888-8888', '987.654.321-11');
+
+INSERT INTO livros (titulo, autor, isbn, genero, ano, quantidade) VALUES 
+('Introdução a Sistemas de Banco de Dados', 'C. J. Date', '978-8535215366', 'Tecnologia', 2004, 5),
+('Engenharia de Software', 'Ian Sommerville', '978-8581435862', 'Tecnologia', 2011, 3);
