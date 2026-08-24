@@ -8,7 +8,7 @@ Backend: Construído com Python e FastAPI, uma combinação que otimiza o ciclo 
 # Demonstração Online
 👉 **[Acesse o ByteBook Aqui!](https://aalexdev.github.io/ByteBook-CRUD/)**
 
-# 🛠️ Funcionalidades Principais
+#  Funcionalidades Principais
 Cadastrar (Create): Inclusão de novos registros no banco de dados com validação de campos.
 
 Visualizar (Read): Consulta e listagem dos dados armazenados em tempo real na interface.
@@ -17,7 +17,7 @@ Atualizar (Update): Modificação de informações de registros já existentes d
 
 Deletar (Delete): Remoção segura de registros diretamente pelo painel.
 
-# 🔧 Estrutura do Projeto
+#  Estrutura do Projeto
 O repositório está organizado da seguinte forma:
 
 /frontend: Arquivos de estilização e lógica da interface (HTML, CSS, JS).
